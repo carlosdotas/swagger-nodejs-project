@@ -5,7 +5,7 @@ import swaggerUi from 'swagger-ui-express';
 import SwaggerConfig from './SwaggerConfig.js';
 
 import authRoutesDatas from './routes/authRoutes.js';
-import userRoutesDatas from './src/users/veiw.js';
+import userRoutesDatas from './src/users/docs.js';
 import productRoutesDatas from './routes/productsRoutes.js';
 
 const app = express();

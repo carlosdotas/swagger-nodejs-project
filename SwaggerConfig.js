@@ -70,7 +70,7 @@ class SwaggerConfig {
             this.swaggerDefinition.paths[swaggerPath][route.method] = {
                 tags: route.tags,
                 summary: route.summary,
-                description: route.description,
+                description: route.description || '',
                 parameters: route.parameters || [],
                 requestBody: route.requestBody  || {},
                 security: route.authRequired ? [{ BearerAuth: [] }] : [],
