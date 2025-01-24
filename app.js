@@ -27,7 +27,7 @@ swaggerConfig.configureRoutes(authRoutesDatas);
 swaggerConfig.configureRoutes(userRoutesDatas);
 swaggerConfig.configureRoutes(productRoutesDatas);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig.getSwaggerDefinition()));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig.getSwaggerDefinition()));
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
