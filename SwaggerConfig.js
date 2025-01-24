@@ -16,6 +16,7 @@ class SwaggerConfig {
                     url: 'https://example.com'
                 },
             },
+            /*
             servers: [
                 {
                     url: `http://localhost:${PORT}`,
@@ -25,7 +26,7 @@ class SwaggerConfig {
                     url: 'https://api.example.com',
                     description: 'Servidor de produção',
                 },
-            ],
+            ],*/
             paths: {},
             components: {
                 securitySchemes: {
