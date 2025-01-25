@@ -1,6 +1,6 @@
-import { filterKey } from '../../funcoes.js';
+import { filterKey } from '../../utils/funcoes.js';
 import { DataTypes } from 'sequelize';
-import controller from './controller.js';
+import controller from '../../utils/controller.js';
 
 const inputs = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -10,8 +10,9 @@ const inputs = {
 };
 
 controller.setModelName('User');    
-controller.setTable('clientes');
+controller.setTable('users');
 controller.setInputs(inputs);
+controller.createTables();
 
 const tags = ['Usuários'];
 

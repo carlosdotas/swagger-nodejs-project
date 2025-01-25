@@ -61,7 +61,6 @@ class SwaggerConfig {
         };
     }
     
-
     // Function to configure routes
     configureRoutes(routesData) {
         routesData.forEach(route => {

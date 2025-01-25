@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { DataTypes } from 'sequelize';
-import sequelize from '../db.js';
+import sequelize from '../../db.js';
 
 // Modelo de Usuário com autenticação
 const AuthUser = sequelize.define('AuthUser', {

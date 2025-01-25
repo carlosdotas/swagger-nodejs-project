@@ -4,9 +4,8 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import SwaggerConfig from './SwaggerConfig.js';
 
-import authRoutesDatas from './routes/authRoutes.js';
+import authRoutesDatas from './src/auth/docs.js';
 import userRoutesDatas from './src/users/docs.js';
-import productRoutesDatas from './routes/productsRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,7 +24,6 @@ const swaggerConfig = new SwaggerConfig(PORT, app, express,cors);
 
 swaggerConfig.configureRoutes(authRoutesDatas);
 swaggerConfig.configureRoutes(userRoutesDatas);
-swaggerConfig.configureRoutes(productRoutesDatas);
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig.getSwaggerDefinition()));
 

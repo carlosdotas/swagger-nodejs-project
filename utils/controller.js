@@ -1,19 +1,27 @@
 import { Op } from 'sequelize';
-import sequelize from './../../db.js';
+import sequelize from '../db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { DataTypes } from 'sequelize';
 
 dotenv.config();
 const SALT_ROUNDS = 10;
 
 class Model {
     constructor() {
-        // Inicialização padrão
         this.modelName = null;
         this.tableName = null;
         this.inputs = null;
-        this.Model = null; // Será definido quando setInputs for chamado
+        this.Model = null;
+
+        // Vinculando os métodos para preservar o contexto de `this`
+        this.handleError = this.handleError.bind(this);
+        this.sendResponse = this.sendResponse.bind(this);
+        this.getList = this.getList.bind(this);
+        this.getOne = this.getOne.bind(this);
+        this.create = this.create.bind(this);
+        this.update = this.update.bind(this);
+        this.deleteOne = this.deleteOne.bind(this);
+        this.createTables = this.createTables.bind(this);
     }
 
     setModelName(name) {
@@ -43,7 +51,18 @@ class Model {
         };
     }
 
-    // Novo método getInputs
+    async createTables() {
+        if (!this.Model) {
+            throw new Error('O modelo ainda não foi definido. Use o método setInputs para configurá-lo.');
+        }
+        try {
+            await this.Model.sync({ alter: true }); // `alter: true` atualiza a tabela para coincidir com o modelo
+            console.log(`Tabela "${this.tableName || 'models'}" criada ou atualizada com sucesso.`);
+        } catch (error) {
+            console.error('Erro ao criar ou atualizar as tabelas:', error.message);
+        }
+    }
+
     getInputs() {
         if (!this.inputs) {
             throw new Error('Os inputs não foram definidos. Utilize o método setInputs para configurá-los.');
@@ -134,4 +153,3 @@ class Model {
 const model = new Model();
 
 export default model;
-
