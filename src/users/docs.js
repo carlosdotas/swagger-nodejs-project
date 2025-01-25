@@ -46,7 +46,7 @@ const inputs = {
 ModelController.setModelName('User');    
 ModelController.setTable('users');
 ModelController.setInputs(inputs);
-ModelController.createTables(true);
+ModelController.createTables(false);
 
 const tags = ['Usuários'];
 

@@ -1,4 +1,4 @@
-import { Op,QueryInterface } from 'sequelize';
+import { Op } from 'sequelize';
 import sequelize from '../db.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
@@ -34,13 +34,6 @@ class ModelControllerClass {
 
     setInputs(inputs) {
         this.inputs = inputs;
-
-        // Verifica se o modelo já foi definido e remove, se necessário
-        if (sequelize.models[this.modelName]) {
-            delete sequelize.models[this.modelName];
-        }
-
-        // Define o modelo com o Sequelize
         this.Model = sequelize.define(this.modelName || 'Model', this.inputs, {
             tableName: this.tableName || 'models',
             timestamps: true,
@@ -53,7 +46,6 @@ class ModelControllerClass {
             }
         });
 
-        // Adiciona o método `checkPassword` ao protótipo do modelo
         this.Model.prototype.checkPassword = function (password) {
             return bcrypt.compare(password, this.password);
         };
@@ -63,32 +55,13 @@ class ModelControllerClass {
         if (!this.Model) {
             throw new Error('O modelo ainda não foi definido. Use o método setInputs para configurá-lo.');
         }
-    
         try {
-            console.log(`Verificando a tabela "${this.tableName || 'models'}"...`);
-            const queryInterface = sequelize.getQueryInterface();
-            
-            // Verifica se a tabela existe
-            const tables = await queryInterface.showAllTables();
-            const tableExists = tables.includes(this.tableName || 'models');
-    
-            if (!tableExists) {
-                console.log(`Tabela "${this.tableName}" não encontrada. Criando...`);
-                await this.Model.sync();
-                console.log(`Tabela "${this.tableName}" criada com sucesso.`);
-            } else {
-                console.log(`Tabela "${this.tableName}" já existe. Sincronizando...`);
-                await this.Model.sync({ alter }); // Sincroniza alterações na tabela
-                console.log(`Tabela "${this.tableName}" sincronizada com sucesso.`);
-            }
+            await this.Model.sync({ alter: alter }); // `alter: true` atualiza a tabela para coincidir com o modelo
+            console.log(`Tabela "${this.tableName || 'models'}" criada ou atualizada com sucesso.`);
         } catch (error) {
-            console.error('Erro ao criar ou sincronizar a tabela:', error.message);
-            throw error; // Propaga o erro para depuração
+            console.error('Erro ao criar ou atualizar as tabelas:', error.message);
         }
     }
-    
-    
-    
 
     getInputs() {
         if (!this.inputs) {
@@ -145,27 +118,27 @@ class ModelControllerClass {
         }
     }
 
-    async create(req, res) {
-        try {
-            const newInstance = await this.Model.create(req.body);
-            this.sendResponse(res, newInstance, null, 'Registro criado com sucesso.');
-        } catch (error) {
-            if (error.name === 'SequelizeUniqueConstraintError') {
-                const fields = Object.keys(error.fields).join(', ');
-                return res.status(400).json({
-                    message: `Erro de duplicidade: o(s) campo(s) ${fields} já existe(m).`
-                });
-            }
-            if (error.name === 'SequelizeValidationError') {
-                const validationErrors = error.errors.map(err => err.message);
-                return res.status(400).json({
-                    message: 'Erro de validação.',
-                    errors: validationErrors
-                });
-            }
-            this.handleError(res, error, 'Erro ao criar registro.');
+async create(req, res) {
+    try {
+        const newInstance = await this.Model.create(req.body);
+        this.sendResponse(res, newInstance, null, 'Registro criado com sucesso.');
+    } catch (error) {
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            const fields = Object.keys(error.fields).join(', ');
+            return res.status(400).json({
+                message: `Erro de duplicidade: o(s) campo(s) ${fields} já existe(m).`
+            });
         }
+        if (error.name === 'SequelizeValidationError') {
+            const validationErrors = error.errors.map(err => err.message);
+            return res.status(400).json({
+                message: 'Erro de validação.',
+                errors: validationErrors
+            });
+        }
+        this.handleError(res, error, 'Erro ao criar registro.');
     }
+}
 
 
     async update(req, res) {
