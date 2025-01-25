@@ -1,6 +1,25 @@
-import { getList, create, getOne, update, deleteOne } from './controller.js';
+import { getList, create, getOne, update, deleteOne, inputs } from './controller.js';
 
 const tags = ['Usuários'];
+
+const filterKeyExample = (obj, keysToFilter) => Object.fromEntries(
+    Object.entries(obj)
+        .map(([key, value]) => [
+            key,
+            Object.fromEntries(
+                Object.entries(value).filter(([subKey]) => keysToFilter.includes(subKey))
+            )
+        ])
+        .filter(([_, filteredValue]) => keysToFilter.every((key) => key in filteredValue))
+);
+
+const generatePathParams = (name, description) => [{
+    name,
+    in: 'path',
+    required: true,
+    description,
+    schema: { type: 'integer' },
+}];
 
 const RoutesDatas = [
     {
@@ -24,12 +43,7 @@ const RoutesDatas = [
                 'application/json': {
                     schema: {
                         type: 'object',
-                        properties: {
-                            name: { type: 'string', example: 'John Doe' },
-                            email: { type: 'string', example: 'john.doe@example.com' },
-                            password: { type: 'string', example: '123456' },
-                        },
-                        required: ['name', 'email', 'password'],
+                        properties: filterKeyExample(inputs, ['type', 'example']),
                     },
                 },
             },
@@ -42,15 +56,7 @@ const RoutesDatas = [
         summary: 'Busca usuário',
         authRequired: false,
         action: getOne,
-        parameters: [
-            {
-                name: 'id',
-                in: 'path',
-                required: true,
-                description: 'ID do usuário',
-                schema: { type: 'integer' },
-            },
-        ],
+        parameters: generatePathParams('id', 'ID do usuário'),
     },
     {
         method: 'put',
@@ -59,15 +65,7 @@ const RoutesDatas = [
         summary: 'Atualiza usuário',
         authRequired: false,
         action: update,
-        parameters: [
-            {
-                name: 'id',
-                in: 'path',
-                required: true,
-                description: 'ID do usuário',
-                schema: { type: 'integer' },
-            },
-        ],
+        parameters: generatePathParams('id', 'ID do usuário'),
     },
     {
         method: 'delete',
@@ -76,15 +74,7 @@ const RoutesDatas = [
         summary: 'Deleta usuário',
         authRequired: false,
         action: deleteOne,
-        parameters: [
-            {
-                name: 'id',
-                in: 'path',
-                required: true,
-                description: 'ID do usuário',
-                schema: { type: 'integer' },
-            },
-        ],
+        parameters: generatePathParams('id', 'ID do usuário'),
     },
 ];
 

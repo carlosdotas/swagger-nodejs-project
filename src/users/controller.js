@@ -7,12 +7,20 @@ import { DataTypes } from 'sequelize';
 dotenv.config();
 const SALT_ROUNDS = 10;
 
-const User = sequelize.define('User', {
+console.table(DataTypes.STRING);
+
+
+
+const inputs = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'O nome não pode estar vazio.' } } },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: { msg: 'O e-mail precisa ser válido.' } } },
-    password: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'A senha não pode estar vazia.' }, len: [8, 100] } }
-}, {
+    name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'O nome não pode estar vazio.' } }, example: 'John Doe' },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: { msg: 'O e-mail precisa ser válido.' } }, example: 'john.doe@example.com' },
+    password: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'A senha não pode estar vazia.' }, len: [8, 100] }, example: 'password123' }
+};
+
+
+
+const User = sequelize.define('User', inputs, {
     tableName: 'users',
     timestamps: true,
     hooks: {
@@ -90,4 +98,4 @@ const deleteOne = async (req, res) => {
     }
 };
 
-export { getList, getOne, create, update, deleteOne };
+export  { getList, getOne, create, update, deleteOne ,inputs };
