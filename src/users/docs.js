@@ -1,25 +1,20 @@
-import { getList, create, getOne, update, deleteOne, inputs } from './controller.js';
+import { filterKey } from '../../funcoes.js';
+import { DataTypes } from 'sequelize';
+import { getList, create, getOne, update, deleteOne, setInputs, setModelName,setTable } from './controller.js';
+
+setModelName('User');    
+setTable('clientes');
+
+const inputs = {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'O nome não pode estar vazio.' } }, example: 'John Doe' },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: { msg: 'O e-mail precisa ser válido.' } }, example: 'john.doe@example.com' },
+    password: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'A senha não pode estar vazia.' }, len: [8, 100] }, example: 'password123' }
+};
+
+setInputs(inputs);
 
 const tags = ['Usuários'];
-
-const filterKeyExample = (obj, keysToFilter) => Object.fromEntries(
-    Object.entries(obj)
-        .map(([key, value]) => [
-            key,
-            Object.fromEntries(
-                Object.entries(value).filter(([subKey]) => keysToFilter.includes(subKey))
-            )
-        ])
-        .filter(([_, filteredValue]) => keysToFilter.every((key) => key in filteredValue))
-);
-
-const generatePathParams = (name, description) => [{
-    name,
-    in: 'path',
-    required: true,
-    description,
-    schema: { type: 'integer' },
-}];
 
 const RoutesDatas = [
     {
@@ -43,7 +38,7 @@ const RoutesDatas = [
                 'application/json': {
                     schema: {
                         type: 'object',
-                        properties: filterKeyExample(inputs, ['type', 'example']),
+                        properties: filterKey(inputs, ['type','example'])
                     },
                 },
             },
@@ -56,7 +51,15 @@ const RoutesDatas = [
         summary: 'Busca usuário',
         authRequired: false,
         action: getOne,
-        parameters: generatePathParams('id', 'ID do usuário'),
+        parameters: [
+            {
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'ID do usuário',
+                schema: { type: 'integer' },
+            },
+        ],
     },
     {
         method: 'put',
@@ -65,7 +68,15 @@ const RoutesDatas = [
         summary: 'Atualiza usuário',
         authRequired: false,
         action: update,
-        parameters: generatePathParams('id', 'ID do usuário'),
+        parameters: [
+            {
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'ID do usuário',
+                schema: { type: 'integer' },
+            },
+        ],
     },
     {
         method: 'delete',
@@ -74,7 +85,15 @@ const RoutesDatas = [
         summary: 'Deleta usuário',
         authRequired: false,
         action: deleteOne,
-        parameters: generatePathParams('id', 'ID do usuário'),
+        parameters: [
+            {
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'ID do usuário',
+                schema: { type: 'integer' },
+            },
+        ],
     },
 ];
 

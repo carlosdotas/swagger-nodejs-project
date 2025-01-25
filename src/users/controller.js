@@ -7,95 +7,121 @@ import { DataTypes } from 'sequelize';
 dotenv.config();
 const SALT_ROUNDS = 10;
 
-console.table(DataTypes.STRING);
+class Model {
+    setModelName(name) {
+        this.modelName = name;
+    }
 
+    setTable(tableName) {
+        this.tableName = tableName;
+    }
 
+    setInputs(inputs) {
+        this.inputs = inputs;
+        this.Model = sequelize.define(this.modelName || 'Model', this.inputs, {
+            tableName: this.tableName || 'models',
+            timestamps: true,
+            hooks: {
+                beforeSave: async (modelInstance) => {
+                    if (modelInstance.changed('password')) {
+                        modelInstance.password = await bcrypt.hash(modelInstance.password, SALT_ROUNDS);
+                    }
+                }
+            }
+        });
 
-const inputs = {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'O nome não pode estar vazio.' } }, example: 'John Doe' },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: { msg: 'O e-mail precisa ser válido.' } }, example: 'john.doe@example.com' },
-    password: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'A senha não pode estar vazia.' }, len: [8, 100] }, example: 'password123' }
-};
+        this.Model.prototype.checkPassword = function (password) {
+            return bcrypt.compare(password, this.password);
+        };
+    }
 
+    handleError(res, error, message) {
+        return res.status(500).json({ message, error: error.message });
+    }
 
+    sendResponse(res, data, total = null, message = '') {
+        return res.json({ data, total, message });
+    }
 
-const User = sequelize.define('User', inputs, {
-    tableName: 'users',
-    timestamps: true,
-    hooks: {
-        beforeSave: async (user) => {
-            if (user.changed('password')) user.password = await bcrypt.hash(user.password, SALT_ROUNDS);
+    getPaginationAndSorting(query) {
+        const { page = 1, perPage = 10, sort = 'id', order = 'ASC' } = query;
+        return {
+            offset: (page - 1) * perPage,
+            limit: +perPage,
+            order: [[sort, order.toUpperCase()]]
+        };
+    }
+
+    async getList(req, res) {
+        try {
+            const { offset, limit, order } = this.getPaginationAndSorting(req.query);
+            const filters = Object.fromEntries(
+                Object.entries(req.query).filter(([key]) => !['page', 'perPage', 'sort', 'order'].includes(key))
+                    .map(([key, value]) => [key, { [Op.like]: `%${value}%` }])
+            );
+
+            const { rows: models, count: total } = await this.Model.findAndCountAll({
+                where: filters,
+                offset,
+                limit,
+                order,
+                attributes: { exclude: ['password'] }
+            });
+
+            this.sendResponse(res, models, total);
+        } catch (error) {
+            this.handleError(res, error, 'Erro ao buscar registros.');
         }
     }
-});
 
-User.prototype.checkPassword = function (password) {
-    return bcrypt.compare(password, this.password);
-};
-
-const handleError = (res, error, message) => res.status(500).json({ message, error: error.message });
-const sendResponse = (res, data, total = null, message = '') => res.json({ data, total, message });
-
-const getPaginationAndSorting = ({ page = 1, perPage = 10, sort = 'id', order = 'ASC' }) => ({
-    offset: (page - 1) * perPage,
-    limit: +perPage,
-    order: [[sort, order.toUpperCase()]]
-});
-
-const getList = async (req, res) => {
-    try {
-        const { offset, limit, order } = getPaginationAndSorting(req.query);
-        const filters = Object.fromEntries(
-            Object.entries(req.query).filter(([key]) => !['page', 'perPage', 'sort', 'order'].includes(key))
-                .map(([key, value]) => [key, { [Op.like]: `%${value}%` }])
-        );
-
-        const { rows: users, count: total } = await User.findAndCountAll({ where: filters, offset, limit, order, attributes: { exclude: ['password'] } });
-        sendResponse(res, users, total);
-    } catch (error) {
-        handleError(res, error, 'Erro ao buscar usuários.');
+    async getOne(req, res) {
+        try {
+            const modelInstance = await this.Model.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
+            modelInstance ? this.sendResponse(res, modelInstance) : res.status(404).json({ message: 'Registro não encontrado.' });
+        } catch (error) {
+            this.handleError(res, error, 'Erro ao buscar registro.');
+        }
     }
-};
 
-const getOne = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
-        user ? sendResponse(res, user) : res.status(404).json({ message: 'Usuário não encontrado.' });
-    } catch (error) {
-        handleError(res, error, 'Erro ao buscar usuário.');
+    async create(req, res) {
+        try {
+            const newInstance = await this.Model.create(req.body);
+            this.sendResponse(res, newInstance, null, 'Registro criado com sucesso.');
+        } catch (error) {
+            this.handleError(res, error, 'Erro ao criar registro.');
+        }
     }
-};
 
-const create = async (req, res) => {
-    try {
-        const { id, name, email } = await User.create(req.body);
-        sendResponse(res, { id, name, email }, null, 'Usuário criado com sucesso.');
-    } catch (error) {
-        handleError(res, error, 'Erro ao criar usuário.');
+    async update(req, res) {
+        try {
+            const modelInstance = await this.Model.findByPk(req.params.id);
+            if (!modelInstance) return res.status(404).json({ message: 'Registro não encontrado.' });
+            await modelInstance.update(req.body);
+            this.sendResponse(res, modelInstance, null, 'Registro atualizado com sucesso.');
+        } catch (error) {
+            this.handleError(res, error, 'Erro ao atualizar registro.');
+        }
     }
-};
 
-const update = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id);
-        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
-        await user.update(req.body);
-        sendResponse(res, user, null, 'Usuário atualizado com sucesso.');
-    } catch (error) {
-        handleError(res, error, 'Erro ao atualizar usuário.');
+    async deleteOne(req, res) {
+        try {
+            const modelInstance = await this.Model.findByPk(req.params.id);
+            if (!modelInstance) return res.status(404).json({ message: 'Registro não encontrado.' });
+            await modelInstance.destroy();
+            this.sendResponse(res, { id: modelInstance.id }, null, 'Registro deletado com sucesso.');
+        } catch (error) {
+            this.handleError(res, error, 'Erro ao deletar registro.');
+        }
     }
-};
+}
 
-const deleteOne = async (req, res) => {
-    try {
-        const user = await User.findByPk(req.params.id);
-        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
-        await user.destroy();
-        sendResponse(res, { id: user.id }, null, 'Usuário deletado com sucesso.');
-    } catch (error) {
-        handleError(res, error, 'Erro ao deletar usuário.');
-    }
-};
+export const setModelName = (name) => model.setModelName(name);
+export const setTable = (tableName) => model.setTable(tableName);
+export const setInputs = (inputs) => model.setInputs(inputs);
+export const getList = (req, res) => model.getList(req, res);
+export const getOne = (req, res) => model.getOne(req, res);
+export const create = (req, res) => model.create(req, res);
+export const update = (req, res) => model.update(req, res);
+export const deleteOne = (req, res) => model.deleteOne(req, res);
 
-export  { getList, getOne, create, update, deleteOne ,inputs };
+const model = new Model();
