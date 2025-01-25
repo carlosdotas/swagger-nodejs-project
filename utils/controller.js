@@ -51,12 +51,12 @@ class Model {
         };
     }
 
-    async createTables() {
+    async createTables(alter = false) {
         if (!this.Model) {
             throw new Error('O modelo ainda não foi definido. Use o método setInputs para configurá-lo.');
         }
         try {
-            await this.Model.sync({ alter: true }); // `alter: true` atualiza a tabela para coincidir com o modelo
+            await this.Model.sync({ alter: alter }); // `alter: true` atualiza a tabela para coincidir com o modelo
             console.log(`Tabela "${this.tableName || 'models'}" criada ou atualizada com sucesso.`);
         } catch (error) {
             console.error('Erro ao criar ou atualizar as tabelas:', error.message);
