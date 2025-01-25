@@ -8,6 +8,14 @@ dotenv.config();
 const SALT_ROUNDS = 10;
 
 class Model {
+    constructor() {
+        // Inicialização padrão
+        this.modelName = null;
+        this.tableName = null;
+        this.inputs = null;
+        this.Model = null; // Será definido quando setInputs for chamado
+    }
+
     setModelName(name) {
         this.modelName = name;
     }
@@ -33,6 +41,14 @@ class Model {
         this.Model.prototype.checkPassword = function (password) {
             return bcrypt.compare(password, this.password);
         };
+    }
+
+    // Novo método getInputs
+    getInputs() {
+        if (!this.inputs) {
+            throw new Error('Os inputs não foram definidos. Utilize o método setInputs para configurá-los.');
+        }
+        return this.inputs;
     }
 
     handleError(res, error, message) {
@@ -115,13 +131,7 @@ class Model {
     }
 }
 
-export const setModelName = (name) => model.setModelName(name);
-export const setTable = (tableName) => model.setTable(tableName);
-export const setInputs = (inputs) => model.setInputs(inputs);
-export const getList = (req, res) => model.getList(req, res);
-export const getOne = (req, res) => model.getOne(req, res);
-export const create = (req, res) => model.create(req, res);
-export const update = (req, res) => model.update(req, res);
-export const deleteOne = (req, res) => model.deleteOne(req, res);
-
 const model = new Model();
+
+export default model;
+

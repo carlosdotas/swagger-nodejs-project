@@ -1,9 +1,6 @@
 import { filterKey } from '../../funcoes.js';
 import { DataTypes } from 'sequelize';
-import { getList, create, getOne, update, deleteOne, setInputs, setModelName,setTable } from './controller.js';
-
-setModelName('User');    
-setTable('clientes');
+import controller from './controller.js';
 
 const inputs = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -12,7 +9,9 @@ const inputs = {
     password: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'A senha não pode estar vazia.' }, len: [8, 100] }, example: 'password123' }
 };
 
-setInputs(inputs);
+controller.setModelName('User');    
+controller.setTable('clientes');
+controller.setInputs(inputs);
 
 const tags = ['Usuários'];
 
@@ -23,7 +22,7 @@ const RoutesDatas = [
         tags,
         summary: 'Lista usuários',
         authRequired: false,
-        action: getList,
+        action: controller.getList,
     },
     {
         method: 'post',
@@ -31,7 +30,7 @@ const RoutesDatas = [
         tags,
         summary: 'Cria usuário',
         authRequired: false,
-        action: create,
+        action: controller.create,
         requestBody: {
             required: true,
             content: {
@@ -50,7 +49,7 @@ const RoutesDatas = [
         tags,
         summary: 'Busca usuário',
         authRequired: false,
-        action: getOne,
+        action: controller.getOne,
         parameters: [
             {
                 name: 'id',
@@ -67,7 +66,7 @@ const RoutesDatas = [
         tags,
         summary: 'Atualiza usuário',
         authRequired: false,
-        action: update,
+        action: controller.update,
         parameters: [
             {
                 name: 'id',
@@ -84,7 +83,7 @@ const RoutesDatas = [
         tags,
         summary: 'Deleta usuário',
         authRequired: false,
-        action: deleteOne,
+        action: controller.deleteOne,
         parameters: [
             {
                 name: 'id',
