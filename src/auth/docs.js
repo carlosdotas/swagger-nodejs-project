@@ -81,6 +81,17 @@ const authActions = {
             if (err) return res.status(401).json({ message: 'Token inválido.' });
             res.json({ message: 'Token válido.', user: decoded });
         });
+    },
+    generateUserToken: (req, res) => {
+        try {
+            const { userId, duration } = req.body;
+            if (!userId || !duration) return res.status(400).json({ message: 'Parâmetros obrigatórios ausentes.' });
+
+            const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: duration });
+            res.json({ message: 'Token gerado com sucesso.', token });
+        } catch (error) {
+            handleError(res, error, 'Erro ao gerar o token.');
+        }
     }
 };
 
@@ -103,7 +114,15 @@ const authRoutesDatas = [
         }
     } },
     { path: '/auth/logoff', method: 'post', tags: ['Autenticação'], summary: 'Faz logoff de um usuário', action: authActions.logoff },
-    { path: '/auth/check', method: 'get', tags: ['Autenticação'], summary: 'Verifica a validade do token', action: authActions.check }
+    { path: '/auth/check', method: 'get', tags: ['Autenticação'], summary: 'Verifica a validade do token', action: authActions.check },
+    { path: '/auth/generate-token', method: 'post', tags: ['Autenticação'], summary: 'Gera um token personalizado para um usuário', action: authActions.generateUserToken, requestBody: {
+        required: true, content: {
+            'application/json': { schema: { type: 'object', properties: {
+                userId: { type: 'integer', example: 1 },
+                duration: { type: 'string', example: '1h' }
+            }, required: ['userId', 'duration'] } }
+        }
+    } }
 ];
 
 export default authRoutesDatas;

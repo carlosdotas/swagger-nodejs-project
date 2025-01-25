@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const SALT_ROUNDS = 10;
 
-class Model {
+class ModelControllerClass {
     constructor() {
         this.modelName = null;
         this.tableName = null;
@@ -150,6 +150,6 @@ class Model {
     }
 }
 
-const model = new Model();
+const ModelController = new ModelControllerClass();
 
-export default model;
+export default ModelController;

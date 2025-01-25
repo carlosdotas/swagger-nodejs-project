@@ -1,6 +1,6 @@
 import { filterKey } from '../../utils/funcoes.js';
 import { DataTypes } from 'sequelize';
-import controller from '../../utils/controller.js';
+import ModelController from '../../utils/ModelController.js';
 
 const inputs = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -9,10 +9,10 @@ const inputs = {
     password: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'A senha não pode estar vazia.' }, len: [8, 100] }, example: 'password123' }
 };
 
-controller.setModelName('User');    
-controller.setTable('users');
-controller.setInputs(inputs);
-controller.createTables();
+ModelController.setModelName('User');    
+ModelController.setTable('users');
+ModelController.setInputs(inputs);
+ModelController.createTables();
 
 const tags = ['Usuários'];
 
@@ -23,7 +23,7 @@ const RoutesDatas = [
         tags,
         summary: 'Lista usuários',
         authRequired: false,
-        action: controller.getList,
+        action: ModelController.getList,
     },
     {
         method: 'post',
@@ -31,7 +31,7 @@ const RoutesDatas = [
         tags,
         summary: 'Cria usuário',
         authRequired: false,
-        action: controller.create,
+        action: ModelController.create,
         requestBody: {
             required: true,
             content: {
@@ -50,7 +50,7 @@ const RoutesDatas = [
         tags,
         summary: 'Busca usuário',
         authRequired: false,
-        action: controller.getOne,
+        action: ModelController.getOne,
         parameters: [
             {
                 name: 'id',
@@ -67,7 +67,7 @@ const RoutesDatas = [
         tags,
         summary: 'Atualiza usuário',
         authRequired: false,
-        action: controller.update,
+        action: ModelController.update,
         parameters: [
             {
                 name: 'id',
@@ -84,7 +84,7 @@ const RoutesDatas = [
         tags,
         summary: 'Deleta usuário',
         authRequired: false,
-        action: controller.deleteOne,
+        action: ModelController.deleteOne,
         parameters: [
             {
                 name: 'id',
