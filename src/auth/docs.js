@@ -7,9 +7,24 @@ import sequelize from '../../db.js';
 const AuthUser = sequelize.define('AuthUser', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     name: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false }
+    phone: { type: DataTypes.STRING, allowNull: false, unique: true }, // Atualizado para 'phone'
+    password: { type: DataTypes.STRING, allowNull: false },    
+    userType: {
+        type: DataTypes.ENUM('admin', 'moderator', 'user'), // Define tipos predefinidos
+        allowNull: false,
+        validate: { notEmpty: { msg: 'O tipo de usuário não pode estar vazio.' } },
+        example: 'admin',
+        defaultValue: 'user', // Define o valor padrão
+    },
+    userGroup: {
+        type: DataTypes.ENUM('finance', 'sales', 'support', 'development'), // Define grupos predefinidos
+        allowNull: false,
+        validate: { notEmpty: { msg: 'O grupo de usuário não pode estar vazio.' } },
+        example: 'finance',
+        defaultValue: 'sales', // Define o valor padrão
+    }
 }, { tableName: 'users', timestamps: true });
+
 
 const SECRET_KEY = 'sua_chave_secreta';
 
@@ -20,27 +35,27 @@ const activeTokens = new Set();
 const authActions = {
     register: async (req, res) => {
         try {
-            const { name, email, password } = req.body;
-            if (!name || !email || !password) return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
+            const { name, phone, password, userType, userGroup } = req.body;
+            if (!name || !phone || !password) return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const user = await AuthUser.create({ name, email, password: hashedPassword });
+            const user = await AuthUser.create({ name, phone, password: hashedPassword, userType, userGroup });
 
             res.status(201).json({ message: 'Usuário registrado com sucesso!', user });
         } catch (error) { handleError(res, error, 'Erro ao registrar usuário.'); }
     },
     login: async (req, res) => {
         try {
-            const { email, password } = req.body;
-            if (!email || !password) return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
+            const { phone, password } = req.body;
+            if (!phone || !password) return res.status(400).json({ message: 'phone e senha são obrigatórios.' });
 
-            const user = await AuthUser.findOne({ where: { email } });
+            const user = await AuthUser.findOne({ where: { phone } });
             if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
             const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) return res.status(401).json({ message: 'Senha inválida.' });
 
-            const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '1h' });
+            const token = jwt.sign({ id: user.id, phone: user.phone }, SECRET_KEY, { expiresIn: '1h' });
             activeTokens.add(token);
             res.json({ message: 'Login bem-sucedido!', token });
         } catch (error) { handleError(res, error, 'Erro ao fazer login.'); }
@@ -100,17 +115,19 @@ const authRoutesDatas = [
         required: true, content: {
             'application/json': { schema: { type: 'object', properties: {
                 name: { type: 'string', example: 'John Doe' },
-                email: { type: 'string', example: 'john.doe@example.com' },
-                password: { type: 'string', example: '123456' }
-            }, required: ['name', 'email', 'password'] } }
+                phone: { type: 'string', example: '62996157340' },
+                password: { type: 'string', example: '12345678' },
+                userType: { type: 'string', example: 'user' },
+                userGroup: { type: 'string', example: 'sales' }
+            }, required: ['name', 'phone', 'password'] } }
         }
     } },
     { path: '/auth/login', method: 'post', tags: ['Autenticação'], summary: 'Faz login de um usuário', action: authActions.login, requestBody: {
         required: true, content: {
             'application/json': { schema: { type: 'object', properties: {
-                email: { type: 'string', example: 'john.doe@example.com' },
+                phone: { type: 'string', example: '62996157340'  },
                 password: { type: 'string', example: '123456' }
-            }, required: ['email', 'password'] } }
+            }, required: ['phone', 'password'] } }
         }
     } },
     { path: '/auth/logoff', method: 'post', tags: ['Autenticação'], summary: 'Faz logoff de um usuário', action: authActions.logoff },
