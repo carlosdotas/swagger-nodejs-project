@@ -4,43 +4,82 @@ import sequelize from '../../db.js';
 
 // Modelo de Local
 const Location = sequelize.define('Location', {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    name: { type: DataTypes.STRING, allowNull: false },
-    address: { type: DataTypes.STRING, allowNull: false, unique: true },
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    address: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+    },
     category: {
         type: DataTypes.ENUM('restaurant', 'shop', 'park', 'museum'),
-        allowNull: false,
-        validate: { notEmpty: { msg: 'A categoria do local não pode estar vazia.' } },
-        example: 'restaurant',
         defaultValue: 'shop',
     },
-    coordinates: { type: DataTypes.GEOMETRY('POINT'), allowNull: false },
-    image: { type: DataTypes.STRING, allowNull: true },
-    icons: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: true },
-    type: { type: DataTypes.STRING, allowNull: true },
-    details: { type: DataTypes.TEXT, allowNull: true }
-}, { tableName: 'locations', timestamps: true });
+    latitude: {
+        type: DataTypes.DOUBLE,
+        allowNull: false,
+    },
+    longitude: {
+        type: DataTypes.DOUBLE,
+        allowNull: false,
+    },
+    image: {
+        type: DataTypes.STRING,
+    },
+    type: {
+        type: DataTypes.STRING,
+    },
+    details: {
+        type: DataTypes.TEXT,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+    },
+}, { 
+    sequelize,
+    modelName: 'Location',
+    tableName: 'locations', 
+    timestamps: true 
+});
+
+Location.sync({ alter: true }).then(() => {
+    console.log('Tabela de locais sincronizada com o banco de dados.');
+});
 
 const handleError = (res, error, message) => res.status(500).json({ message, error });
 
 const locationActions = {
     register: async (req, res) => {
         try {
-            const { name, address, category, coordinates, image, icons, type, details } = req.body;
-            if (!name || !address || !coordinates) return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
+            const { name, address, category, latitude, longitude, image, type, details } = req.body;
+            if (!name || !address || !latitude || !longitude) return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
 
-            const location = await Location.create({ name, address, category, coordinates, image, icons, type, details });
+            const location = await Location.create({ name, address, category, latitude, longitude, image, type, details });
             res.status(201).json({ message: 'Local registrado com sucesso!', location });
         } catch (error) { handleError(res, error, 'Erro ao registrar local.'); }
     },
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, address, category, coordinates, image, icons, type, details } = req.body;
+            const { name, address, category, latitude, longitude, image, type, details } = req.body;
             const location = await Location.findByPk(id);
             if (!location) return res.status(404).json({ message: 'Local não encontrado.' });
 
-            await location.update({ name, address, category, coordinates, image, icons, type, details });
+            await location.update({ name, address, category, latitude, longitude, image, type, details });
             res.json({ message: 'Local atualizado com sucesso!', location });
         } catch (error) { handleError(res, error, 'Erro ao atualizar local.'); }
     },
@@ -76,12 +115,12 @@ const locationRoutesDatas = [
                 name: { type: 'string', example: 'Parque Central' },
                 address: { type: 'string', example: '123 Rua Principal' },
                 category: { type: 'string', example: 'park' },
-                coordinates: { type: 'object', example: { type: 'Point', coordinates: [125.6, 10.1] } },
+                latitude: { type: 'number', example: 10.1 },
+                longitude: { type: 'number', example: 125.6 },
                 image: { type: 'string', example: 'http://example.com/image.jpg' },
-                icons: { type: 'array', items: { type: 'string' }, example: ['icon1', 'icon2'] },
                 type: { type: 'string', example: 'outdoor' },
                 details: { type: 'string', example: 'Detalhes sobre o local' }
-            }, required: ['name', 'address', 'coordinates'] } }
+            }, required: ['name', 'address', 'latitude', 'longitude'] } }
         }
     } },
     { path: '/locations/:id', method: 'put', tags: ['Locais'], summary: 'Atualiza um local', action: locationActions.update, requestBody: {
@@ -90,9 +129,9 @@ const locationRoutesDatas = [
                 name: { type: 'string', example: 'Parque Central' },
                 address: { type: 'string', example: '123 Rua Principal' },
                 category: { type: 'string', example: 'park' },
-                coordinates: { type: 'object', example: { type: 'Point', coordinates: [125.6, 10.1] } },
+                latitude: { type: 'number', example: 10.1 },
+                longitude: { type: 'number', example: 125.6 },
                 image: { type: 'string', example: 'http://example.com/image.jpg' },
-                icons: { type: 'array', items: { type: 'string' }, example: ['icon1', 'icon2'] },
                 type: { type: 'string', example: 'outdoor' },
                 details: { type: 'string', example: 'Detalhes sobre o local' }
             } } }
