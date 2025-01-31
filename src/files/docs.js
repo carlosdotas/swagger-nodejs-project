@@ -4,6 +4,8 @@ import multer from 'multer'; // Importar multer
 import { DataTypes } from 'sequelize';
 import sequelize from '../../db.js';
 
+//Upload OK
+
 const pasta = './uploads/';
 
 // Configuração do multer
