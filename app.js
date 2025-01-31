@@ -7,6 +7,7 @@ import SwaggerConfig from './SwaggerConfig.js';
 import authRoutesDatas from './src/auth/docs.js';
 import userRoutesDatas from './src/users/docs.js';
 import locationRoutesDatas from './src/locais/docs.js';
+import uploadRoutesDatas from './src/files/docs.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ const swaggerConfig = new SwaggerConfig(PORT, app, express,cors);
 swaggerConfig.configureRoutes(authRoutesDatas);
 swaggerConfig.configureRoutes(userRoutesDatas);
 swaggerConfig.configureRoutes(locationRoutesDatas);
+swaggerConfig.configureRoutes(uploadRoutesDatas);
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerConfig.getSwaggerDefinition()));
 

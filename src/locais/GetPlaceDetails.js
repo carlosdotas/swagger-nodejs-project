@@ -9,9 +9,19 @@ import fetch from 'node-fetch';
 async function getPlaceDetails(shortLink, apiKey) {
     let responseArray = [];
 
+  
+
     try {
         const response = await fetch(shortLink, { method: 'HEAD', redirect: 'manual' });
         const expandedUrl = response.headers.get('location');
+
+        // Log the expanded URL for debugging
+        console.log('Expanded URL:', expandedUrl);
+
+        // Validate the expanded URL
+        if (!expandedUrl || !/^https?:\/\//.test(expandedUrl)) {
+            throw new Error('Invalid expanded URL');
+        }
 
         // Extract the address from the expanded URL
         const address = expandedUrl.split('/place/')[1].split('/data=')[0].replace(/-/g, ' ').replace(/\+/g, ' ').trim();
@@ -21,15 +31,14 @@ async function getPlaceDetails(shortLink, apiKey) {
         const apiResponse = await fetch(apiEndpoint);
         const data = await apiResponse.json();
 
+        // Log the API response for debugging
+        console.log('API Response:', JSON.stringify(data, null, 2));
 
         if (!data || data.status !== 'OK' || data.results.length === 0) {
             throw new Error('Unable to obtain place name');
         }
 
-        responseArray = await extractDetails(data.results, apiKey);
-
-
-
+        responseArray = await extractDetails(data.results,shortLink, apiKey);
 
     } catch (error) {
         console.error('Error fetching place details:', error);
@@ -53,22 +62,6 @@ function getLongNameByType(addressComponents, type) {
     return component ? component.long_name : null;
 }
 
-/**
- * Extracts the place name from the provided URL.
- * @param {string} url - The URL to fetch the place name from.
- * @returns {Promise<string|null>} - The extracted place name or null.
- */
-async function extractPlaceName(url) {
-    const response = await fetch(url, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-    });
-
-    const text = await response.text();
-    const matches = text.match(/<meta\s+content=["']([^"']+)["']\s+itemprop=["']name["']\s*>/);
-    return matches ? matches[1] : null;
-}
 
 /**
  * Extracts detailed information from the results returned by the Google Maps API.
@@ -76,7 +69,7 @@ async function extractPlaceName(url) {
  * @param {string} apiKey - The Google Maps API key.
  * @returns {Promise<Object[]>} - An array of detailed place information.
  */
-async function extractDetails(results, apiKey) {
+async function extractDetails(results,  shortLink,apiKey) {
     const details = [];
 
     for (const result of results) {
@@ -92,7 +85,7 @@ async function extractDetails(results, apiKey) {
             icon: placeDetails.icon || '',
             icon_background_color: placeDetails.icon_background_color || '',
             photos: placeDetails.photos ? placeDetails.photos.map(photo => photo.photo_reference).join(', ') : '',
-            url: placeDetails.url || '',
+            url: shortLink || '',
             types: placeDetails.types ? placeDetails.types.join(', ') : '',
             qd_lt: getLongNameByType(placeDetails.address_components, "subpremise") || '',
             street_number: getLongNameByType(placeDetails.address_components, "street_number") || '',

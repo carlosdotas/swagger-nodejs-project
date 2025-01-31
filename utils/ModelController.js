@@ -118,28 +118,27 @@ class ModelControllerClass {
         }
     }
 
-async create(req, res) {
-    try {
-        const newInstance = await this.Model.create(req.body);
-        this.sendResponse(res, newInstance, null, 'Registro criado com sucesso.');
-    } catch (error) {
-        if (error.name === 'SequelizeUniqueConstraintError') {
-            const fields = Object.keys(error.fields).join(', ');
-            return res.status(400).json({
-                message: `Erro de duplicidade: o(s) campo(s) ${fields} já existe(m).`
-            });
+    async create(req, res) {
+        try {
+            const newInstance = await this.Model.create(req.body);
+            this.sendResponse(res, newInstance, null, 'Registro criado com sucesso.');
+        } catch (error) {
+            if (error.name === 'SequelizeUniqueConstraintError') {
+                const fields = Object.keys(error.fields).join(', ');
+                return res.status(400).json({
+                    message: `Erro de duplicidade: o(s) campo(s) ${fields} já existe(m).`
+                });
+            }
+            if (error.name === 'SequelizeValidationError') {
+                const validationErrors = error.errors.map(err => err.message);
+                return res.status(400).json({
+                    message: 'Erro de validação.',
+                    errors: validationErrors
+                });
+            }
+            this.handleError(res, error, 'Erro ao criar registro.');
         }
-        if (error.name === 'SequelizeValidationError') {
-            const validationErrors = error.errors.map(err => err.message);
-            return res.status(400).json({
-                message: 'Erro de validação.',
-                errors: validationErrors
-            });
-        }
-        this.handleError(res, error, 'Erro ao criar registro.');
     }
-}
-
 
     async update(req, res) {
         try {
