@@ -7,6 +7,7 @@ import sequelize from '../../db.js';
 const pasta = './uploads/';
 
 // Configuração do multer
+// Configuração do multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, pasta); // Pasta onde os arquivos serão armazenados
