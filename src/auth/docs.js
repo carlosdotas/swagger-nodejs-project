@@ -63,7 +63,7 @@ const authActions = {
             const hashedPassword = await bcrypt.hash(password, 10);
             const user = await AuthUser.create({ name, phone, password: hashedPassword, userType, userGroup });
 
-            res.status(201).json({ message: 'Usuário registrado com sucesso!', user });
+            res.status(201).json({ success: true, message: 'Usuário registrado com sucesso!', user });
         } catch (error) {
             handleError(res, error, 'Erro ao registrar usuário.');
         }
@@ -100,7 +100,7 @@ const authActions = {
                 login_date: new Date(),
             });
 
-            res.json({ message: 'Login bem-sucedido!', token });
+            res.json({ success: true, message: 'Login bem-sucedido!', token });
         } catch (error) {
             handleError(res, error, 'Erro ao fazer login.');
         }
@@ -129,7 +129,7 @@ const authActions = {
                 { where: { token: actualToken } }
             );
 
-            res.json({ message: 'Logoff bem-sucedido!' });
+            res.json({ success: true, message: 'Logoff bem-sucedido!' });
         } catch (error) {
             handleError(res, error, 'Erro ao fazer logoff.');
         }
@@ -192,7 +192,7 @@ const authActions = {
                     { where: { token: actualToken } }
                 );
 
-                res.json({ message: 'Token válido.', user: decoded });
+                res.json({ success: true, message: 'Token válido.', user: decoded });
             });
         } catch (error) {
             handleError(res, error, 'Erro ao verificar o token.');
