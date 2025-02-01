@@ -56,7 +56,7 @@ class ModelControllerClass {
             throw new Error('O modelo ainda não foi definido. Use o método setInputs para configurá-lo.');
         }
         try {
-            await this.Model.sync({ alter: alter }); // `alter: true` atualiza a tabela para coincidir com o modelo
+            await this.Model.sync({ alter: true }); // `alter: true` atualiza a tabela para coincidir com o modelo
             console.log(`Tabela "${this.tableName || 'models'}" criada ou atualizada com sucesso.`);
         } catch (error) {
             console.error('Erro ao criar ou atualizar as tabelas:', error.message);
@@ -71,15 +71,15 @@ class ModelControllerClass {
     }
 
     handleError(res, error, message) {
-        return res.status(500).json({ message, error: error.message });
+        return res.status(500).json({ success: false, message, error: error.message }); // Corrigido para false
     }
 
     sendResponse(res, data, total = null, message = '') {
-        return res.json({ data, total, message });
+        return res.json({ success: true, data, total, message });
     }
 
     getPaginationAndSorting(query) {
-        const { page = 1, perPage = 10, sort = 'id', order = 'ASC' } = query;
+        const { page = 1, perPage = 100000, sort = 'id', order = 'DESC' } = query;
         return {
             offset: (page - 1) * perPage,
             limit: +perPage,
@@ -112,7 +112,7 @@ class ModelControllerClass {
     async getOne(req, res) {
         try {
             const modelInstance = await this.Model.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
-            modelInstance ? this.sendResponse(res, modelInstance) : res.status(404).json({ message: 'Registro não encontrado.' });
+            modelInstance ? this.sendResponse(res, modelInstance) : res.status(404).json({ success: false, message: 'Registro não encontrado.' }); // Corrigido para false
         } catch (error) {
             this.handleError(res, error, 'Erro ao buscar registro.');
         }
@@ -126,14 +126,15 @@ class ModelControllerClass {
             if (error.name === 'SequelizeUniqueConstraintError') {
                 const fields = Object.keys(error.fields).join(', ');
                 return res.status(400).json({
+                    success: false, // Corrigido para false
                     message: `Erro de duplicidade: o(s) campo(s) ${fields} já existe(m).`
                 });
             }
             if (error.name === 'SequelizeValidationError') {
-                const validationErrors = error.errors.map(err => err.message);
+                const validationErrors = error.errors.map(err => err.message).join(', ');
                 return res.status(400).json({
-                    message: 'Erro de validação.',
-                    errors: validationErrors
+                    success: false, // Corrigido para false
+                    message: `Erro de validação: ${validationErrors}`
                 });
             }
             this.handleError(res, error, 'Erro ao criar registro.');
@@ -143,7 +144,7 @@ class ModelControllerClass {
     async update(req, res) {
         try {
             const modelInstance = await this.Model.findByPk(req.params.id);
-            if (!modelInstance) return res.status(404).json({ message: 'Registro não encontrado.' });
+            if (!modelInstance) return res.status(404).json({ success: false, message: 'Registro não encontrado.' }); // Corrigido para false
             await modelInstance.update(req.body);
             this.sendResponse(res, modelInstance, null, 'Registro atualizado com sucesso.');
         } catch (error) {
@@ -154,7 +155,7 @@ class ModelControllerClass {
     async deleteOne(req, res) {
         try {
             const modelInstance = await this.Model.findByPk(req.params.id);
-            if (!modelInstance) return res.status(404).json({ message: 'Registro não encontrado.' });
+            if (!modelInstance) return res.status(404).json({ success: false, message: 'Registro não encontrado.' }); // Corrigido para false
             await modelInstance.destroy();
             this.sendResponse(res, { id: modelInstance.id }, null, 'Registro deletado com sucesso.');
         } catch (error) {
@@ -163,6 +164,6 @@ class ModelControllerClass {
     }
 }
 
-const ModelController = new ModelControllerClass();
 
-export default ModelController;
+
+export default ModelControllerClass;

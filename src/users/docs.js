@@ -1,10 +1,13 @@
 import { filterKey } from '../../utils/funcoes.js';
 import { DataTypes } from 'sequelize';
-import ModelController from './../../utils/ModelController.js';
+import ModelControllerClass from '../../utils/ModelController.js';
+
+const ModelController = new ModelControllerClass();
 
 const inputs = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'O nome não pode estar vazio.' } }, example: 'John Doe' },
+    userGroupId: { type: DataTypes.INTEGER },
     phone: { 
         type: DataTypes.STRING, 
         allowNull: false, 
