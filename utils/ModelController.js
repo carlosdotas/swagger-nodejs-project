@@ -46,8 +46,8 @@ class ModelControllerClass {
             }
         });
 
-        this.Model.prototype.checkPassword = function (password) {
-            return bcrypt.compare(password, this.password);
+        this.Model.prototype.checkPassword = async function (password) {
+            return await bcrypt.compare(password, this.password);
         };
     }
 

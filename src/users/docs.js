@@ -7,7 +7,6 @@ const ModelController = new ModelControllerClass();
 const inputs = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'O nome não pode estar vazio.' } }, example: 'John Doe' },
-    userGroupId: { type: DataTypes.INTEGER },
     phone: { 
         type: DataTypes.STRING, 
         allowNull: false, 
@@ -39,8 +38,6 @@ const inputs = {
     },
     userGroup: {
         type: DataTypes.ENUM('finance', 'sales', 'support', 'development'), // Define grupos predefinidos
-        allowNull: false,
-        validate: { notEmpty: { msg: 'O grupo de usuário não pode estar vazio.' } },
         example: 'finance',
         defaultValue: 'sales', // Define o valor padrão
     }
